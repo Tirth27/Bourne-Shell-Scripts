@@ -17,6 +17,7 @@ echo -e "${GREEN}1) Regular video${NC}"
 echo -e "${GREEN}2) Live stream${NC}"
 echo -e "${GREEN}3) Audio only${NC}"
 echo -e "${GREEN}4) Entire playlist${NC}"
+echo -e "${GREEN}5) Best possible format${NC}"
 read DOWNLOAD_TYPE
 
 # Create Downloads/YT-DLP folder if it doesn't exist
@@ -65,6 +66,11 @@ elif [ "$DOWNLOAD_TYPE" == "4" ]; then
     # Download entire playlist in parallel with selected formats
     echo -e "${BLUE}Downloading entire playlist with selected formats in parallel...${NC}"
     yt-dlp -f "$VIDEO_ID+$AUDIO_ID" --merge-output-format mp4 -o "$DOWNLOAD_PATH/%(playlist_title)s/%(title)s.%(ext)s" "$VIDEO_URL" --concurrent-fragments 10
+# Best Possible Format (New Option)
+elif [ "$DOWNLOAD_TYPE" == "5" ]; then
+    echo -e "${BLUE}Downloading the best available format...${NC}"
+    yt-dlp -f "bv*+ba/b" --merge-output-format mp4 -o "$DOWNLOAD_PATH/%(title)s_BEST.%(ext)s" "$VIDEO_URL"
+# Regular Video (Default)
 else
     # Display available formats
     echo -e "${YELLOW}Fetching available formats...${NC}"
