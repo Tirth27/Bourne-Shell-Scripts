@@ -18,6 +18,8 @@ echo -e "${GREEN}2) Live stream${NC}"
 echo -e "${GREEN}3) Audio only${NC}"
 echo -e "${GREEN}4) Entire playlist${NC}"
 echo -e "${GREEN}5) Best possible format${NC}"
+echo -e "${GREEN}6) Download subtitles only (English, Gujarati, Hindi)${NC}"
+echo -e "${GREEN}7) Extract video chapters to JSON${NC}"
 read DOWNLOAD_TYPE
 
 # Create Downloads/YT-DLP folder if it doesn't exist
@@ -70,6 +72,49 @@ elif [ "$DOWNLOAD_TYPE" == "4" ]; then
 elif [ "$DOWNLOAD_TYPE" == "5" ]; then
     echo -e "${BLUE}Downloading the best available format...${NC}"
     yt-dlp -f "bv*+ba/b" --merge-output-format mp4 -o "$DOWNLOAD_PATH/%(title)s_BEST.%(ext)s" "$VIDEO_URL"
+# Download Subtitles Only
+elif [ "$DOWNLOAD_TYPE" == "6" ]; then
+    echo -e "${BLUE}Downloading subtitles (English, Gujarati, Hindi)...${NC}"
+    yt-dlp --write-sub --sub-lang en,gu,hi --skip-download -o "$DOWNLOAD_PATH/%(title)s_subtitles.%(ext)s" "$VIDEO_URL"
+# Extract Video Chapters
+elif [ "$DOWNLOAD_TYPE" == "7" ]; then
+    echo -e "${BLUE}Extracting video chapters to JSON...${NC}"
+    
+    # Get video ID and title
+    VIDEO_ID=$(yt-dlp --get-id "$VIDEO_URL")
+    ORIGINAL_TITLE=$(yt-dlp --get-filename -o "%(title)s" "$VIDEO_URL")
+    
+    # Use video title for filename which is guaranteed to be filesystem-safe
+    JSON_FILE="$DOWNLOAD_PATH/ORIGINAL_${ORIGINAL_TITLE}.json"
+    CHAPTERS_FILE="$DOWNLOAD_PATH/CHAPTERS_${ORIGINAL_TITLE}.json"
+    
+    # Check if jq is installed for pretty formatting
+    if command -v jq &> /dev/null; then
+        # Full JSON dump
+        yt-dlp --dump-json --skip-download "$VIDEO_URL" | jq > "$JSON_FILE"
+        
+        # Extract just the chapters to a separate file
+        yt-dlp --dump-json --skip-download "$VIDEO_URL" | jq '.chapters' > "$CHAPTERS_FILE"
+    else
+        echo -e "${YELLOW}jq is not installed. Cannot extract chapters separately.${NC}"
+        echo -e "${YELLOW}Installing full JSON dump only.${NC}"
+        yt-dlp --dump-json --skip-download "$VIDEO_URL" > "$JSON_FILE"
+    fi
+    
+    if [ -f "$JSON_FILE" ]; then
+        echo -e "${GREEN}Full JSON data extracted successfully to: $JSON_FILE${NC}"
+        
+        if [ -f "$CHAPTERS_FILE" ]; then
+            echo -e "${GREEN}Chapters extracted separately to: $CHAPTERS_FILE${NC}"
+        else
+            echo -e "${RED}Failed to extract chapters to separate file.${NC}"
+        fi
+        
+        echo -e "${BLUE}Video title: $ORIGINAL_TITLE${NC}"
+        echo -e "${BLUE}Video ID: $VIDEO_ID${NC}"
+    else
+        echo -e "${RED}Failed to extract video data.${NC}"
+    fi
 # Regular Video (Default)
 else
     # Display available formats
