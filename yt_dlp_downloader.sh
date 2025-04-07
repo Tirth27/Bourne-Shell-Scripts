@@ -84,9 +84,14 @@ elif [ "$DOWNLOAD_TYPE" == "7" ]; then
     VIDEO_ID=$(yt-dlp --get-id "$VIDEO_URL")
     ORIGINAL_TITLE=$(yt-dlp --get-filename -o "%(title)s" "$VIDEO_URL")
     
+    # Create subdirectories for organized storage
+    RAW_DIR="$DOWNLOAD_PATH/Raw"
+    CHAPTERS_DIR="$DOWNLOAD_PATH/Chapters"
+    mkdir -p "$RAW_DIR" "$CHAPTERS_DIR"
+    
     # Use video title for filename which is guaranteed to be filesystem-safe
-    JSON_FILE="$DOWNLOAD_PATH/ORIGINAL_${ORIGINAL_TITLE}.json"
-    CHAPTERS_FILE="$DOWNLOAD_PATH/CHAPTERS_${ORIGINAL_TITLE}.json"
+    JSON_FILE="$RAW_DIR/${ORIGINAL_TITLE}.json"
+    CHAPTERS_FILE="$CHAPTERS_DIR/${ORIGINAL_TITLE}.json"
     
     # Check if jq is installed for pretty formatting
     if command -v jq &> /dev/null; then
