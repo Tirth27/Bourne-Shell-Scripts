@@ -81,9 +81,14 @@ elif [ "$DOWNLOAD_TYPE" == "6" ]; then
     LANGUAGES=("en" "gu" "hi")
     VIDEO_TITLE=$(yt-dlp --get-filename -o "%(title)s" "$VIDEO_URL" 2>/dev/null)
 
-    # List all available subtitles
-    echo -e "${YELLOW}Available subtitles for the video:${NC}"
-    yt-dlp --list-subs "$VIDEO_URL"
+    # Check if subtitles are available
+    SUBS_OUTPUT=$(yt-dlp --list-subs "$VIDEO_URL")
+    echo "$SUBS_OUTPUT"
+
+    if echo "$SUBS_OUTPUT" | grep -qE "no subtitles|has no automatic captions"; then
+        echo -e "${RED}No subtitles available for this video. Skipping download.${NC}"
+        exit 0
+    fi
 
     # Download each language subtitle separately
     for LANG in "${LANGUAGES[@]}"; do
