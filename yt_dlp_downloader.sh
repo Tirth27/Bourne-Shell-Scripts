@@ -68,14 +68,34 @@ elif [ "$DOWNLOAD_TYPE" == "4" ]; then
     # Download entire playlist in parallel with selected formats
     echo -e "${BLUE}Downloading entire playlist with selected formats in parallel...${NC}"
     yt-dlp -f "$VIDEO_ID+$AUDIO_ID" --merge-output-format mp4 -o "$DOWNLOAD_PATH/%(playlist_title)s/%(title)s.%(ext)s" "$VIDEO_URL" --concurrent-fragments 10
-# Best Possible Format (New Option)
+# Best Possible Format
 elif [ "$DOWNLOAD_TYPE" == "5" ]; then
     echo -e "${BLUE}Downloading the best available format...${NC}"
     yt-dlp -f "bv*+ba/b" --merge-output-format mp4 -o "$DOWNLOAD_PATH/%(title)s_BEST.%(ext)s" "$VIDEO_URL"
 # Download Subtitles Only
+# https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#subtitle-options
 elif [ "$DOWNLOAD_TYPE" == "6" ]; then
-    echo -e "${BLUE}Downloading subtitles (English, Gujarati, Hindi)...${NC}"
-    yt-dlp --write-sub --sub-lang en,gu,hi --skip-download -o "$DOWNLOAD_PATH/%(title)s_subtitles.%(ext)s" "$VIDEO_URL"
+    echo -e "${BLUE}Downloading subtitles in separate language folders...${NC}"
+    
+    # Create language-specific directories
+    LANGUAGES=("en" "gu" "hi")
+    VIDEO_TITLE=$(yt-dlp --get-filename -o "%(title)s" "$VIDEO_URL" 2>/dev/null)
+
+    # List all available subtitles
+    echo -e "${YELLOW}Available subtitles for the video:${NC}"
+    yt-dlp --list-subs "$VIDEO_URL"
+
+    # Download each language subtitle separately
+    for LANG in "${LANGUAGES[@]}"; do
+        # Create language directory
+        LANG_DIR="$DOWNLOAD_PATH/$LANG"
+        mkdir -p "$LANG_DIR"
+        
+        echo -e "${YELLOW}Downloading ${LANG} subtitles...${NC}"
+        yt-dlp --write-subs --sub-lang "$LANG" --skip-download -o "$LANG_DIR/%(title)s_subtitles.%(ext)s" "$VIDEO_URL"
+        yt-dlp --write-auto-sub --sub-lang "$LANG" --skip-download -o "$LANG_DIR/%(title)s_auto_subtitles.%(ext)s" "$VIDEO_URL"
+    done
+    echo -e "${GREEN}Subtitle download process completed${NC}"
 # Extract Video Chapters
 elif [ "$DOWNLOAD_TYPE" == "7" ]; then
     echo -e "${BLUE}Extracting video chapters to JSON...${NC}"
