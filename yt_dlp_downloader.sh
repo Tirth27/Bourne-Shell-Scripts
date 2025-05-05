@@ -41,9 +41,22 @@ elif [ "$DOWNLOAD_TYPE" == "3" ]; then
     echo -e "${YELLOW}Enter the audio format ID you want to download:${NC}"
     read AUDIO_ID
     
+    # Ask user for preferred audio output format
+    echo -e "${YELLOW}Select output audio format:${NC}"
+    echo -e "${GREEN}1) MP3${NC}"
+    echo -e "${GREEN}2) WAV${NC}"
+    read AUDIO_FORMAT_CHOICE
+    
+    # Set audio format based on user choice
+    if [ "$AUDIO_FORMAT_CHOICE" == "2" ]; then
+        AUDIO_FORMAT="wav"
+    else
+        AUDIO_FORMAT="mp3"  # Default to mp3 if invalid choice
+    fi
+    
     # Download selected audio format with highest bitrate
-    echo -e "${BLUE}Downloading selected audio format...${NC}"
-    yt-dlp -f "$AUDIO_ID" --extract-audio --audio-format mp3 -o "$DOWNLOAD_PATH/%(title)s.%(ext)s" "$VIDEO_URL"
+    echo -e "${BLUE}Downloading selected audio format as ${AUDIO_FORMAT}...${NC}"
+    yt-dlp -f "$AUDIO_ID" --extract-audio --audio-format "$AUDIO_FORMAT" -o "$DOWNLOAD_PATH/%(title)s.%(ext)s" "$VIDEO_URL"
 # Entire Playlist
 elif [ "$DOWNLOAD_TYPE" == "4" ]; then
 	# Extract first video URL from playlist safely
